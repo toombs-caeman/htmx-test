@@ -12,6 +12,17 @@ Using the sqlite "Chinook" sample database, create a nice search interface for t
     * paginate/infinite scroll results
 * filter by 
 
+# thoughts
+* templates
+    * `thing.html` - detail view of the object
+    * `thing.htmx` - line view of the object
+* route
+    * `/thing/` - list view
+    * `/thing/<id>` - detail view
+    * `/thing/new` - create/new
+    * `/thing/<id>/edit` - update/edit
+    * `/thing/<id>/delete` - delete
+
 # ref
 [flask]
 [htmx](https://htmx.org/)

@@ -13,4 +13,16 @@
     details details
 </p>
 
+<table>
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Album</th>
+            <th>Artist</th>
+        </tr>
+    </thead>
+    <tr hx-get="/artist/{{ArtistId}}/tracks" hx-trigger="revealed" hx-swap="outerHTML">
+        <td>loading...</td>
+    </tr>
+</table>
 {% endblock %}

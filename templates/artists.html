@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Artists{% endblock %}
+{% block content %}
+Here's a table of all the artists! Every single one.
+<table>
+    <tr hx-get="/artists" hx-trigger="revealed" hx-swap="outerHTML">
+        <td>loading...</td>
+    </tr>
+</table>
+{% endblock %}

@@ -1,6 +1,6 @@
 # Flask app.py
 import sqlite3
-from flask import Flask, redirect, render_template, request
+from flask import Flask, redirect, render_template, request, url_for
 
 app = Flask(__name__)
 
@@ -28,13 +28,23 @@ def q(sql, *params, dict=False):
     with DB(dict) as db:
         return db.execute(sql, params)
 
-def paginate(sql, *params, dict=False):
+def paginate(item_format, sql, *params):
     """Shorthand for paginated query"""
     sql += ' limit ? offset ?'
     limit = request.args.get('limit', '100')
     offset = request.args.get('offset', '0')
     params += limit, offset
-    return q(sql, *params, dict=dict)
+    data = q(sql, *params, dict=True).fetchall()
+    result = ''.join(
+        item_format(**row) for row in data
+    )
+    if len(data) == int(limit):
+        result += more(url_for(request.endpoint, offset=data[-1][0]))
+    return result
+
+def more(url, tag='tr'):
+    """scroll trigger"""
+    return f"""<{tag} hx-get="{url}" hx-trigger="revealed" hx-swap="outerHTML"></{tag}>"""
 
 @app.route("/")
 def index():
@@ -44,16 +54,9 @@ def index():
 def tracks():
     if not htmx:
         return render('tracks')
-    data = paginate(
-        'select TrackId from tracks order by TrackId'
-    ).fetchall()
-    result = ''.join(track(id) for (id,) in data)
-    # if we haven't reached the end, then put another trigger to keep loading results
-    if len(data) == int(request.args.get('limit', '100')):
-        result += f"""<tr hx-get="/tracks?offset={data[-1][0]}" hx-trigger="revealed" hx-swap="outerHTML"> <td>loading...</td> </tr>"""
-    return result
-
-
+    return paginate(track,
+        'select TrackId as id from tracks order by TrackId'
+    )
 
 @app.route("/track/<id>")
 def track(id):
@@ -74,23 +77,42 @@ def track(id):
         dict=True
     ).fetchone())
 
+@app.route("/artists")
+def artists():
+    if not htmx:
+        return render('artists')
+    return paginate(
+        artist,
+        'select ArtistId as id from artists order by ArtistId'
+    )
 
 @app.route("/artist/<id>")
 def artist(id):
     return render('artist', **q(
-        "select Name from artists where ArtistId = ?",
+        "select ArtistId, Name from artists where ArtistId = ?",
         id,
         dict=True
     ).fetchone())
 
 @app.route("/artist/<id>/tracks")
 def tracksByArtist(id):
-    return render('artist', **q(
-        "select Name from artists where ArtistId = ?",
-        id,
-        dict=True
-    ).fetchone())
+    if not htmx:
+        redirect(url_for('artist', id=id))
 
-@app.route("/artists")
-def artists():
-    return render('artists')
+    return paginate(
+        lambda **r:render('track', **r),
+        """select
+                TrackId,
+                b.AlbumId,
+                b.ArtistId,
+                t.Name as track,
+                b.Title as album,
+                a.Name as artist
+                from tracks as t
+                join albums as b on t.AlbumId = b.AlbumId
+                join artists as a on b.ArtistID = a.ArtistId
+                where b.ArtistId = ?
+                """,
+        id,
+    )
+
