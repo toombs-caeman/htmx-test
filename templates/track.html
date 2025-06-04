@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+    {% block title %}HTMX - {{track}}{% endblock %}
+{% block head %}
+<style type="text/css">
+    .important {
+        color: #336699;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<h1>{{track}} by {{artist}}</h1>
+<p class="important">
+    details details
+</p>
+    <p>
+    Album: {{album}}
+    </p>
+{% endblock %}

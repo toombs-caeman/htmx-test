@@ -1,0 +1,5 @@
+<tr>
+    <td><a href="/track/{{TrackId}}">{{track}}</a></td>
+    <td><a href="/album/{{AlbumId}}">{{album}}</a></td>
+    <td><a href="/artist/{{ArtistId}}">{{artist}}</a></td>
+</tr>
